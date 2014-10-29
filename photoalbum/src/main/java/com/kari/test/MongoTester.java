@@ -1,7 +1,11 @@
 package com.kari.test;
 
 import com.mongodb.*;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.gridfs.GridFSInputFile;
 
+import java.io.File;
 import java.net.UnknownHostException;
 
 /**
@@ -26,10 +30,16 @@ public class MongoTester {
 
         DBCollection col = db.getCollection("userCollection");
 
-        DBObject user = createUser(col, "admin", "System Admin", "password");
+        //DBObject user = createUser(col, "admin", "System Admin", "password");
 
-        System.out.println(user);
+        //System.out.println(user);
         System.out.println("user count: " + col.getCount());
+
+        //col = db.getCollection("testImagesCollection");
+        //saveImage(db, "/Users/Kari/projects/git-repos/tech-lab/photoalbum/src/main/resources/images/spongebob.jpg");
+        //saveImage(db, "/Users/Kari/projects/git-repos/tech-lab/photoalbum/src/main/resources/images/spongebob-2.jpg");
+        listImages(db);
+        //readImage(db);
 
         mongoClient.close();
     }
@@ -50,4 +60,33 @@ public class MongoTester {
         return user;
     }
 
+    public static void saveImage(DB db, String path) {
+        try {
+            File imageFile = new File(path);
+            GridFS gfsPhoto = new GridFS(db, "testImagesCollection");
+            GridFSInputFile gfsFile = gfsPhoto.createFile(imageFile);
+            gfsFile.setFilename(imageFile.getName());
+            gfsFile.put("user", "admin");
+            gfsFile.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void readImage(DB db) {
+        String filename = "spongebob.jpg";
+        GridFS gfsPhoto = new GridFS(db, "testImagesCollection");
+        //gfsPhoto.remove(gfsPhoto.findOne(filename));
+        //GridFSDBFile imageForOutput = gfsPhoto.findOne(filename);
+        //System.out.println(imageForOutput);
+    }
+
+    public static void listImages(DB db) {
+        GridFS gfsPhoto = new GridFS(db, "testImagesCollection");
+        DBCursor cursor = gfsPhoto.getFileList();
+        System.out.println("image count: " + cursor.size());
+        while (cursor.hasNext()) {
+            System.out.println("  " + cursor.next());
+        }
+    }
 }
